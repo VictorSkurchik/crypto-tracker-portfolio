@@ -38,7 +38,7 @@ class TronProvider(
                 val balances =
                     buildList {
                         account?.balance?.let { sun ->
-                            val trx = sun / 1_000_000.0
+                            val trx = sun / SUN_PER_TRX
                             if (trx > 0.0) add(TokenBalance(assetSymbol = "TRX", quantity = trx, chain = ChainId.TRON))
                         }
                         account?.trc20.orEmpty().forEach { entry ->
@@ -62,6 +62,7 @@ class TronProvider(
 
     private companion object {
         const val BASE_URL = "https://api.trongrid.io"
+        const val SUN_PER_TRX = 1_000_000.0
         val KNOWN_TRC20 =
             mapOf(
                 "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" to KnownToken("USDT", 1_000_000.0),
