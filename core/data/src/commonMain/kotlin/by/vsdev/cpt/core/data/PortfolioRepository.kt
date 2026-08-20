@@ -189,13 +189,13 @@ class PortfolioRepository(
         lastRefreshedEpochMillis: Long?,
     ): PortfolioSnapshot {
         val byAccountId = cachedBalances.groupBy { it.accountId }
-        val allAccounts: List<Pair<String, String>> =
-            wallets.map { it.id.value to it.displayName } +
-                exchanges.map { it.id.value to it.displayName } +
-                customAssets.map { it.id.value to it.displayName }
+        val allAccounts: List<Triple<String, String, String>> =
+            wallets.map { Triple(it.id.value, it.displayName, it.chain.name) } +
+                exchanges.map { Triple(it.id.value, it.displayName, "EXCHANGE") } +
+                customAssets.map { Triple(it.id.value, it.displayName, "CUSTOM") }
 
         val accountBreakdowns =
-            allAccounts.map { (accountId, displayName) ->
+            allAccounts.map { (accountId, displayName, badge) ->
                 val balances =
                     byAccountId[accountId].orEmpty().map {
                         PricedBalance(it.assetSymbol, it.quantity, it.priceUsd, it.valueUsd)
@@ -203,6 +203,7 @@ class PortfolioRepository(
                 AccountBreakdown(
                     accountId = AccountId(accountId),
                     displayName = displayName,
+                    badge = badge,
                     valueUsd = balances.sumOf { it.valueUsd },
                     balances = balances,
                 )

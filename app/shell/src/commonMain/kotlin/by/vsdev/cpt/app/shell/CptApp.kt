@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -30,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import by.vsdev.cpt.core.designsystem.CptFoldPosture
+import by.vsdev.cpt.core.designsystem.CptNavIcons
 import by.vsdev.cpt.core.designsystem.CptTheme
 import by.vsdev.cpt.core.designsystem.CptWindowWidthSizeClass
 import by.vsdev.cpt.core.designsystem.rememberFoldPosture
@@ -47,19 +52,23 @@ import by.vsdev.cpt.feature.wallets.walletsGraph
 
 private data class TopLevelDestination(
     val route: Any,
-    val label: String,
+    val shortLabel: String,
+    val fullLabel: String,
+    val icon: @Composable () -> Unit,
 )
 
 private val topLevelDestinations =
     listOf(
-        TopLevelDestination(PortfolioRoute, "Portfolio"),
-        TopLevelDestination(WalletsRoute, "Wallets"),
-        TopLevelDestination(ExchangesRoute, "Exchanges"),
-        TopLevelDestination(CustomAssetsRoute, "Custom"),
-        TopLevelDestination(SettingsRoute, "Settings"),
+        TopLevelDestination(PortfolioRoute, "Portfolio", "Portfolio") { CptNavIcons.Portfolio() },
+        TopLevelDestination(WalletsRoute, "Wallets", "Wallets") { CptNavIcons.Wallets() },
+        TopLevelDestination(ExchangesRoute, "Exchanges", "Exchanges") { CptNavIcons.Exchanges() },
+        TopLevelDestination(CustomAssetsRoute, "Assets", "Custom Assets") { CptNavIcons.CustomAssets() },
+        TopLevelDestination(SettingsRoute, "Settings", "Settings") { CptNavIcons.Settings() },
     )
 
-private val MAX_CONTENT_WIDTH = 840.dp
+private val MAX_CONTENT_WIDTH = 640.dp
+private val NAV_RAIL_WIDTH = 88.dp
+private val NAV_DRAWER_WIDTH = 280.dp
 
 @Composable
 fun CptApp() {
@@ -125,14 +134,45 @@ private fun CptAppBottomNav(
                     NavigationBarItem(
                         selected = isSelected(destination),
                         onClick = { onNavigate(destination.route) },
-                        icon = {},
-                        label = { Text(destination.label) },
+                        icon = destination.icon,
+                        label = { Text(destination.shortLabel) },
+                        colors = navItemColors(),
                     )
                 }
             }
         },
     ) { padding -> content(Modifier.padding(padding)) }
 }
+
+@Composable
+private fun navItemColors() =
+    NavigationBarItemDefaults.colors(
+        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+@Composable
+private fun railItemColors() =
+    NavigationRailItemDefaults.colors(
+        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+@Composable
+private fun drawerItemColors() =
+    NavigationDrawerItemDefaults.colors(
+        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
 /**
  * Used for medium/expanded windows and — with a real [CptFoldPosture.HalfOpened] posture — for a
@@ -152,13 +192,14 @@ private fun CptAppSidePanelNav(
                 maxWidth * (posture.hingeEndFraction - posture.hingeStartFraction)
             }
         Row(modifier = Modifier.fillMaxSize()) {
-            NavigationRail {
+            NavigationRail(modifier = Modifier.width(NAV_RAIL_WIDTH)) {
                 topLevelDestinations.forEach { destination ->
                     NavigationRailItem(
                         selected = isSelected(destination),
                         onClick = { onNavigate(destination.route) },
-                        icon = {},
-                        label = { Text(destination.label) },
+                        icon = destination.icon,
+                        label = { Text(destination.shortLabel) },
+                        colors = railItemColors(),
                     )
                 }
             }
@@ -178,12 +219,14 @@ private fun CptAppPermanentDrawer(
 ) {
     PermanentNavigationDrawer(
         drawerContent = {
-            PermanentDrawerSheet {
+            PermanentDrawerSheet(modifier = Modifier.width(NAV_DRAWER_WIDTH)) {
                 topLevelDestinations.forEach { destination ->
                     NavigationDrawerItem(
                         selected = isSelected(destination),
                         onClick = { onNavigate(destination.route) },
-                        label = { Text(destination.label) },
+                        icon = destination.icon,
+                        label = { Text(destination.fullLabel) },
+                        colors = drawerItemColors(),
                     )
                 }
             }

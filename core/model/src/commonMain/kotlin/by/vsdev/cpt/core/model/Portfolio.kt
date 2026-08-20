@@ -5,6 +5,7 @@ import kotlin.time.Instant
 data class AccountBreakdown(
     val accountId: AccountId,
     val displayName: String,
+    val badge: String,
     val valueUsd: Double,
     val balances: List<PricedBalance>,
 )
