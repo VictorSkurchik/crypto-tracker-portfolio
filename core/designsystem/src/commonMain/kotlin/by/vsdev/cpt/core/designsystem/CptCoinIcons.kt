@@ -37,8 +37,7 @@ private const val GLYPH_SIZE_FRACTION = 0.4f
 private const val DIAMOND_SCALE_FRACTION = 0.82f
 private const val DIAMOND_ROTATION_DEGREES = 45f
 
-// Colors below are the design's per-hue OKLCH background/mark tokens, already fully specified by
-// the ticker key they're mapped under — a named constant per literal would only restate that.
+// Each literal is already named by the ticker key it's mapped under.
 @Suppress("MagicNumber")
 private val CptCoinFallback = CptCoinStyle(Color(0xFFF1EFEA), Color(0xFF6E6B63), CptGlyphMark.DOT)
 

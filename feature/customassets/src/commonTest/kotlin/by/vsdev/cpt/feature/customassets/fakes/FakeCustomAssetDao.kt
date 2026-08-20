@@ -6,12 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-/**
- * In-memory fake for the Room DAO `CustomAssetsRepository` depends on. `CustomAssetsRepository` is
- * a concrete class, not an interface, so testing `CustomAssetsViewModel` means faking the
- * repository's own dependency rather than the repository itself — mirroring the pattern
- * `:feature:portfolio` uses for `PortfolioRepository` one level up.
- */
+// CustomAssetsRepository is a concrete class, so its Room DAO is faked here instead of itself.
 class FakeCustomAssetDao : CustomAssetDao {
     private val state = MutableStateFlow<List<CustomAssetEntity>>(emptyList())
 

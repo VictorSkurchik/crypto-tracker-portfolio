@@ -33,11 +33,7 @@ class FakeExchangeConnector(
     override suspend fun fetchBalances(credentials: ExchangeCredentials): ProviderResult<List<TokenBalance>> = result
 }
 
-/**
- * Tracks how many times [getPrices] was called, so tests can assert a refresh happened exactly
- * once. An optional [gate] lets a test suspend the call mid-flight (e.g. to observe
- * `isRefreshing == true` before letting the refresh complete).
- */
+/** [gate], if set, suspends the call mid-flight so a test can observe `isRefreshing == true`. */
 class FakePriceProvider(
     private val prices: Map<String, Double> = emptyMap(),
     private val gate: CompletableDeferred<Unit>? = null,

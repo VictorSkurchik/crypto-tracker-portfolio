@@ -34,16 +34,10 @@ import platform.Security.kSecValueData
 import platform.posix.memcpy
 
 /**
- * Keychain-backed secret storage. Bridges CoreFoundation's CFString constants (kSecClass etc.)
- * into plain Kotlin Strings up front via CFBridgingRelease, builds queries via plain
- * NSMutableDictionary, and converts each query to a CFDictionaryRef only at the Security-framework
- * call site via CFBridgingRetain/CFBridgingRelease (a direct `as CFDictionaryRef` cast on an
- * NSDictionary is rejected by the compiler as impossible — Foundation objects and CoreFoundation
- * pointers are different representations in Kotlin/Native's type system despite being
- * toll-free-bridged at the Objective-C level, so the conversion has to go through the bridging
- * functions, with a balanced retain/release around each call). String<->NSData goes through a
- * raw byte-pointer bridge rather than NSString's encode/decode methods, which aren't reliably
- * callable here.
+ * Keychain-backed secret storage. Queries are built as plain NSMutableDictionary and converted to
+ * CFDictionaryRef only at the Security-framework call site via CFBridgingRetain/Release — a direct
+ * `as CFDictionaryRef` cast is rejected by the compiler since Kotlin/Native treats Foundation and
+ * CoreFoundation types as distinct despite Objective-C's toll-free bridging.
  */
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
@@ -69,9 +63,7 @@ class IosSecretStore : SecretStore {
         remove(key)
         val query = baseQuery(key)
         query.setObject(value.toNSData(), forKey = secValueData.ns())
-        // Explicit rather than relying on the kSecAttrAccessibleWhenUnlocked default: exchange
-        // secrets should never be included in an iCloud/encrypted-device backup that could be
-        // restored onto a different device, so this pins them to this device only.
+        // Pinned to this device only, so secrets never travel via an iCloud/device backup.
         query.setObject(secAttrAccessibleWhenUnlockedThisDeviceOnly, forKey = secAttrAccessible.ns())
         val status = query.asCFDictionary { ref -> SecItemAdd(ref, null) }
         check(status == errSecSuccess) { "Keychain write failed for key \"$key\" with OSStatus $status" }
@@ -92,8 +84,7 @@ class IosSecretStore : SecretStore {
 
     override suspend fun remove(key: String) {
         val status = baseQuery(key).asCFDictionary { ref -> SecItemDelete(ref) }
-        // errSecItemNotFound just means there was nothing to delete (e.g. the store()-triggered
-        // delete-before-add on first write) -- that's expected, not a failure.
+        // errSecItemNotFound (e.g. store()'s delete-before-add on first write) isn't a failure.
         check(status == errSecSuccess || status == errSecItemNotFound) {
             "Keychain delete failed for key \"$key\" with OSStatus $status"
         }

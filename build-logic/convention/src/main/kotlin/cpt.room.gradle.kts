@@ -21,11 +21,8 @@ dependencies {
     add("kspIosSimulatorArm64", libs.library("room-compiler"))
 }
 
-// Now that exportSchema = true on AppDatabase, Room needs somewhere to write the schema JSON
-// snapshots (one per version) so future migrations can be written/tested against them. Configured
-// as a raw KSP arg rather than the newer `room { schemaDirectory(...) }` Gradle-plugin DSL to avoid
-// pulling in and wiring up an additional Gradle plugin for a single directory path; the KSP arg is
-// the same mechanism Room's own Gradle plugin ultimately configures under the hood.
+// Where Room writes exportSchema's JSON snapshots. A raw KSP arg (what Room's own Gradle plugin
+// DSL configures under the hood anyway) avoids pulling in that plugin for one directory path.
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }

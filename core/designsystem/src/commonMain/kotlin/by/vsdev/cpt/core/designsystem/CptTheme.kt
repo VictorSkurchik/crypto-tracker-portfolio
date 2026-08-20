@@ -14,9 +14,7 @@ private fun cptLightColorScheme() =
         background = Color(0xFFFAFAF8),
         surface = Color(0xFFFFFFFF),
         surfaceVariant = Color(0xFFF1EFEA),
-        // Deliberately darker than the design mockup's literal token — chips/text-field borders are
-        // interactive-component boundaries, so WCAG 1.4.11 wants >=3:1 against the background; the
-        // mockup's #E1DED6 only clears 1.29:1.
+        // Darker than the mockup's #E1DED6 (1.29:1) — WCAG 1.4.11 wants >=3:1 for interactive borders.
         outline = Color(0xFF8A867B),
         onSurface = Color(0xFF1B1A18),
         onSurfaceVariant = Color(0xFF6E6B63),

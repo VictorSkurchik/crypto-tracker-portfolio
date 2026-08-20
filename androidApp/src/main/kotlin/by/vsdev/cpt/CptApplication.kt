@@ -27,13 +27,7 @@ class CptApplication : Application() {
         initKoin(androidPlatformModule, appFeatureModules)
     }
 
-    /**
-     * Minimal, purely-local crash visibility: this app has no analytics/telemetry by design, which
-     * also means zero field visibility when something crashes. No network call and no third-party
-     * SDK here either — just a plain-text file under [filesDir] the user could attach to a bug
-     * report if they ever want to. Chains to the previously-installed default handler afterward so
-     * the process still terminates/reports to the OS exactly as it would have without this.
-     */
+    /** Purely local crash log under [filesDir] — this app has no analytics/telemetry by design. */
     private fun installCrashLogger() {
         val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->

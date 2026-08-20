@@ -25,11 +25,7 @@ class FakeSecretStore : SecretStore {
     }
 }
 
-/**
- * An optional [gate] lets a test suspend the connector call mid-flight, so it can observe
- * `isVerifying == true` on [by.vsdev.cpt.feature.exchanges.ExchangesViewModel.connectState] before
- * letting the call complete.
- */
+/** [gate], if set, suspends mid-flight so a test can observe `isVerifying == true`. */
 class FakeExchangeConnector(
     override val id: ExchangeId,
     private val result: ProviderResult<List<TokenBalance>>,

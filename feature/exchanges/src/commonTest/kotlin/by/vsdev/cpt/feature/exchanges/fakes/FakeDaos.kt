@@ -6,11 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-/**
- * In-memory fake for the Room DAO `ExchangesRepository` depends on, mirroring the pattern
- * `:feature:portfolio` and `:core:data` already use one level down — `ExchangesRepository` is a
- * concrete class, so testing the ViewModel means faking its dependency rather than itself.
- */
+// ExchangesRepository is a concrete class, so its Room DAO is faked here instead of itself.
 class FakeExchangeAccountDao : ExchangeAccountDao {
     private val state = MutableStateFlow<List<ExchangeAccountEntity>>(emptyList())
 

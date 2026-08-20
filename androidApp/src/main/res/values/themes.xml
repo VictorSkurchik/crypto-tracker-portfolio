@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Manifest-level theme, split light (here) / dark (values-night/themes.xml) so the platform window
-  background matches CptTheme's actual background token (core/designsystem/CptTheme.kt) during the
-  brief window before Compose attaches, instead of always showing a light background regardless of
-  system theme (the previous @android:style/Theme.Material.Light.NoActionBar).
-
-  This intentionally builds on the framework's own Theme.Material (not the Material Components /
-  Material3 XML themes from com.google.android.material, which this project has no dependency on
-  anywhere — this app's Material3 usage is entirely via Compose, not XML themes) — day/night
-  switching comes from this values/values-night split, not from the parent theme itself.
+  Split light/dark (see values-night/themes.xml) so the window background matches CptTheme's
+  actual background before Compose attaches, instead of always flashing light regardless of system
+  theme. Builds on the framework's Theme.Material, not Material Components — this app has no
+  com.google.android.material dependency; its Material3 usage is entirely via Compose.
 -->
 <resources>
     <style name="Theme.Cpt" parent="android:Theme.Material.Light.NoActionBar">

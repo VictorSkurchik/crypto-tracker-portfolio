@@ -7,15 +7,9 @@ import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 
 /**
- * Maps an [Exception] caught around an HTTP call to the right [ProviderError].
- *
- * Every connector/provider in this module wraps its call in a generic `catch (e: Exception)` as a
- * last resort, but a real network timeout was previously bucketed under [ProviderError.Unavailable]
- * indistinguishably from e.g. a 5xx response or a malformed body, even though [ProviderError.Timeout]
- * exists specifically to let callers retry/back off differently for "the network was slow" versus
- * "the server/response was actually broken". Ktor 3.5.1 surfaces a timeout as one of three distinct
- * exception types depending on which phase failed -- request, connect, or socket read/write -- so
- * all three are checked here.
+ * Maps an [Exception] caught around an HTTP call to the right [ProviderError], distinguishing a
+ * timeout (retriable) from an actually-broken response ([ProviderError.Unavailable]). Ktor surfaces
+ * a timeout as one of three distinct exception types depending on which phase failed.
  */
 fun networkExceptionToFailure(
     exception: Exception,

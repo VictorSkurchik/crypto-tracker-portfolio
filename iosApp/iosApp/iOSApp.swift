@@ -15,20 +15,9 @@ struct iOSApp: App {
     }
 }
 
-/// Minimal, privacy-conscious crash logger.
-///
-/// No analytics/telemetry are used anywhere in this app by design, which
-/// otherwise leaves zero field visibility when something crashes. This
-/// installs an `NSSetUncaughtExceptionHandler` that appends crash details to
-/// a plain text file in `Library/Caches` (excluded from iCloud backups, and
-/// appropriate for transient debug data rather than user data).
-///
-/// Limitation: `NSSetUncaughtExceptionHandler` only catches Objective-C /
-/// Foundation-level uncaught exceptions. Swift runtime traps (e.g. force
-/// unwraps, array out-of-bounds, fatalError) and Kotlin/Native crashes are
-/// not Objective-C exceptions and will NOT be captured by this handler; a
-/// complete solution would require a lower-level signal handler, which is a
-/// much larger undertaking than warranted here.
+/// Purely local crash log in `Library/Caches` (excluded from iCloud backups) — this app has no
+/// analytics/telemetry by design. Only catches Objective-C/Foundation exceptions, not Swift traps
+/// (force-unwraps, fatalError) or Kotlin/Native crashes.
 enum CrashLogger {
     private static let logFileName = "crash_log.txt"
 

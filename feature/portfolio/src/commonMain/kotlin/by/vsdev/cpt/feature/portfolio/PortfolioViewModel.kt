@@ -22,9 +22,7 @@ class PortfolioViewModel(
     private val _uiState = MutableStateFlow(PortfolioUiState())
     val uiState: StateFlow<PortfolioUiState> = _uiState.asStateFlow()
 
-    // Guards against re-triggering the initial refresh on every subsequent emission of an
-    // otherwise still-empty snapshot (e.g. the one `observeSnapshot()` emits as a side effect of
-    // `refresh()` itself writing the refresh timestamp) — it must fire at most once per ViewModel.
+    // refresh() itself re-emits an empty snapshot before data arrives; this must fire only once.
     private var hasTriggeredInitialRefresh = false
 
     init {

@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-/** In-memory fake for the Room DAO, so [by.vsdev.cpt.core.data.WalletsRepository] can be tested without a real database. */
 class FakeWalletDao : WalletDao {
     private val state = MutableStateFlow<List<WalletEntity>>(emptyList())
 

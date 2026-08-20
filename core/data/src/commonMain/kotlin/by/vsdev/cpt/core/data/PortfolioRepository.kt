@@ -31,10 +31,9 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Fans out across every configured account's own provider (never calling a third-party API
- * directly itself), batches ONE [PriceProvider] call for every distinct symbol seen across the
- * whole refresh (never per-account), and persists per-account results independently so one
- * account's failure never blanks out the others' cached data.
+ * Batches ONE [PriceProvider] call per distinct symbol across the whole refresh (never per
+ * account), and persists per-account results independently so one account's failure never blanks
+ * out the others' cached data.
  */
 class PortfolioRepository(
     private val walletsRepository: WalletsRepository,
@@ -45,8 +44,7 @@ class PortfolioRepository(
     private val exchangeConnectorRegistry: ExchangeConnectorRegistry,
     private val priceProvider: PriceProvider,
 ) {
-    /** Guards [refresh] so two overlapping triggers (pull-to-refresh + a manual tap, a double-tap)
-     * never read/write the same account lists and DB rows concurrently. */
+    /** Guards [refresh] against two overlapping triggers racing the same account lists/DB rows. */
     private val refreshMutex = Mutex()
 
     fun observeSnapshot(): Flow<PortfolioSnapshot> =
@@ -60,10 +58,7 @@ class PortfolioRepository(
             buildSnapshot(wallets, exchanges, customAssets, cachedBalances, refreshState?.lastRefreshedEpochMillis)
         }
 
-    /**
-     * No-ops (returning an empty error map) if a refresh is already in flight, rather than
-     * running two refreshes concurrently against the same account lists and DB rows.
-     */
+    /** No-ops (empty error map) if a refresh is already in flight. */
     suspend fun refresh(): Map<String, ProviderError?> {
         if (!refreshMutex.tryLock()) return emptyMap()
         try {
@@ -127,14 +122,9 @@ class PortfolioRepository(
         }
 
     /**
-     * Runs a single account's [fetch], as defense-in-depth bounding it to
-     * [ACCOUNT_FETCH_TIMEOUT_MILLIS] even though the network layer already applies its own
-     * HTTP-level timeouts, so one hung provider call can never hold up the rest of [refresh] (and
-     * the UI's refresh spinner) indefinitely — a timed-out attempt is treated as a
-     * [ProviderError.Timeout] failure for that account, same as any other failure. A
-     * [ProviderError.RateLimited] failure is retried up to [MAX_RATE_LIMIT_RETRIES] times after a
-     * short [RATE_LIMIT_RETRY_DELAY_MILLIS] delay, since it's transient and shouldn't be reported
-     * identically to a permanent failure like a bad API key.
+     * Bounds [fetch] to [ACCOUNT_FETCH_TIMEOUT_MILLIS] (defense-in-depth on top of the network
+     * layer's own HTTP timeouts, so one hung call can't hold up the rest of [refresh]), and retries
+     * a transient [ProviderError.RateLimited] up to [MAX_RATE_LIMIT_RETRIES] times.
      */
     private suspend fun fetchAccountBalances(fetch: suspend () -> ProviderResult<List<TokenBalance>>): ProviderResult<List<TokenBalance>> {
         var result = fetchWithTimeout(fetch)
@@ -269,8 +259,7 @@ class PortfolioRepository(
     }
 
     private companion object {
-        // Larger than the slowest possible network-layer timeout (15s request + 10s connect, see
-        // :core:network's createHttpClient) so this is only ever a defense-in-depth backstop.
+        // Larger than the network layer's own timeouts (15s request + 10s connect) — a backstop only.
         const val ACCOUNT_FETCH_TIMEOUT_MILLIS = 30_000L
         const val RATE_LIMIT_RETRY_DELAY_MILLIS = 2_000L
         const val MAX_RATE_LIMIT_RETRIES = 1

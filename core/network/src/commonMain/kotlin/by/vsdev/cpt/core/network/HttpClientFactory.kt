@@ -36,18 +36,10 @@ fun createHttpClient(): HttpClient =
     }
 
 /**
- * Wraps [Logger.DEFAULT] and redacts known-sensitive query parameter *values* before the line is
- * emitted, rather than disabling request logging outright.
- *
- * At [LogLevel.INFO], Ktor's Logging plugin only logs the method + full URL (and response status)
- * — never headers or bodies — so every exchange connector that puts its API key/secret/signature
- * in a header (OKX, Bybit, Bitget, CoinMarketCap) is unaffected. Two providers put a secret in the
- * URL itself, which *is* logged at this level:
- *  - [by.vsdev.cpt.core.network.onchain.EtherscanV2Provider] sends the API key as `apikey=...`
- *    (mandated by Etherscan's API — there's no header-based alternative).
- *  - [by.vsdev.cpt.core.network.exchange.BinanceConnector] appends the HMAC `signature=...` for
- *    request signing (Binance's API design, not header-based).
- * Every other connector/provider in this module was checked and does not put a secret in the URL.
+ * Wraps [Logger.DEFAULT], redacting sensitive query-param values before the line is emitted.
+ * [LogLevel.INFO] logs the full URL but never headers, so only Etherscan's `apikey=` and
+ * Binance's `signature=` (both mandated by those APIs, no header alternative) would otherwise
+ * leak — every other connector keeps secrets in headers only.
  */
 private object RedactingLogger : Logger {
     override fun log(message: String) {
@@ -57,9 +49,7 @@ private object RedactingLogger : Logger {
     private fun redact(message: String): String =
         SENSITIVE_QUERY_PARAM_REGEX.replace(message) { match -> "${match.groupValues[1]}=REDACTED" }
 
-    // Case-insensitive and covers a couple of plausible future param spellings in addition to the
-    // two that are actually in use today (`apikey`, `signature`), since a missed name here would
-    // silently leak a credential into logs again.
+    // Broader than today's two actual params (apikey/signature) as a guard against future leaks.
     private val SENSITIVE_QUERY_PARAM_REGEX =
         Regex("""(?i)\b(apikey|api_key|signature|sign|secret|passphrase)=[^&\s"']+""")
 }

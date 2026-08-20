@@ -23,7 +23,6 @@ interface OnChainProvider {
     ): ProviderResult<List<TokenBalance>>
 }
 
-/** One implementation per exchange. */
 interface ExchangeConnector {
     val id: ExchangeId
 

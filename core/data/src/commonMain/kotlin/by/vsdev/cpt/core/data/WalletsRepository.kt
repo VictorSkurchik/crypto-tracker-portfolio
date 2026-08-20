@@ -37,10 +37,9 @@ class WalletsRepository(
 }
 
 /**
- * Returns `null` (instead of throwing, like [ChainId.valueOf] would) when [WalletEntity.chain]
- * doesn't match any current [ChainId] constant, so a chain removed/renamed in a future release
- * just drops that one stored wallet from the list rather than crashing [observeWallets] — and
- * with it the whole Wallets/Portfolio screen — for every user with that value persisted.
+ * Unlike [ChainId.valueOf], returns `null` instead of throwing on an unrecognized
+ * [WalletEntity.chain], so a renamed/removed enum constant drops one stored row instead of
+ * crashing [observeWallets].
  */
 private fun WalletEntity.toDomain(): Account.OnChainWallet? {
     val chainId = ChainId.entries.firstOrNull { it.name == chain } ?: return null

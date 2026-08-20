@@ -14,11 +14,7 @@ import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-/**
- * [Account.ExchangeAccount] never carries credentials directly (see :core:model docs) — this
- * repository is the only place that resolves a `credentialsRef` to the real [ExchangeCredentials],
- * and it only ever does so transiently, right before a sync call.
- */
+/** The only place that resolves a `credentialsRef` to real [ExchangeCredentials], transiently, right before a sync call. */
 class ExchangesRepository(
     private val exchangeAccountDao: ExchangeAccountDao,
     private val secretStore: SecretStore,
@@ -42,9 +38,7 @@ class ExchangesRepository(
                 ExchangeAccountEntity(id = id.value, displayName = displayName, exchange = exchange.name, credentialsRef = credentialsRef),
             )
         } catch (e: Exception) {
-            // The secret was written but the row it's referenced by never made it into the DB —
-            // remove it so it doesn't linger as an orphaned, unreferenced entry, then surface the
-            // original failure.
+            // DB write failed after the secret was already stored — remove it to avoid an orphan.
             secretStore.remove(credentialsRef)
             throw e
         }
@@ -57,13 +51,10 @@ class ExchangesRepository(
     }
 
     /**
-     * Removes the secret before the DB row (the reverse of [addAccount]'s write order) so that if
-     * one half fails, the account is left in a self-healing state instead of an orphaned one: a
-     * failure deleting the secret leaves the row (and its secret) untouched for a clean retry; a
-     * failure deleting the row afterwards leaves it referencing an already-gone secret, which
-     * [resolveCredentials] already treats as a plain "missing credentials" account-level error —
-     * and a retried [removeAccount] call still finishes the job, since removing an already-removed
-     * secret is a no-op.
+     * Removes the secret before the DB row (reverse of [addAccount]'s order): if this fails
+     * partway through, the account is left in a self-healing state — either untouched for a clean
+     * retry, or referencing an already-gone secret, which [resolveCredentials] already treats as a
+     * plain "missing credentials" error — rather than an orphaned secret.
      */
     suspend fun removeAccount(
         id: AccountId,
@@ -75,11 +66,9 @@ class ExchangesRepository(
 }
 
 /**
- * Returns `null` (instead of throwing, like [ExchangeId.valueOf] would) when
- * [ExchangeAccountEntity.exchange] doesn't match any current [ExchangeId] constant, so an
- * exchange removed/renamed in a future release just drops that one stored account from the list
- * rather than crashing [observeAccounts] — and with it the whole Exchanges/Portfolio screen — for
- * every user with that value persisted.
+ * Unlike [ExchangeId.valueOf], returns `null` instead of throwing on an unrecognized
+ * [ExchangeAccountEntity.exchange], so a renamed/removed enum constant drops one stored row
+ * instead of crashing [observeAccounts].
  */
 private fun ExchangeAccountEntity.toDomain(): Account.ExchangeAccount? {
     val exchangeId = ExchangeId.entries.firstOrNull { it.name == exchange } ?: return null

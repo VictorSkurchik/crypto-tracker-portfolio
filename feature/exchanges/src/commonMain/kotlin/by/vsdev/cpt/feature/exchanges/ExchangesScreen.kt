@@ -66,8 +66,7 @@ private fun ExchangeId.iconSymbol(): String =
         ExchangeId.BITGET -> "BG"
     }
 
-/** [ExchangeId] has no `Parcelable`/direct `Saver` support in commonMain, so persist it across
- * process death as its [ExchangeId.name] string instead. */
+// ExchangeId isn't saveable on every KMP target, so its name is saved instead of the enum itself.
 private val ExchangeIdSaver =
     Saver<ExchangeId, String>(
         save = { it.name },

@@ -88,12 +88,7 @@ class TonProvider(
         }
     }
 
-    /**
-     * Throws [TonRequestFailedException] on a non-2xx response instead of the caller silently
-     * treating it as "this wallet holds nothing" (as `return emptyList()` used to do here in three
-     * places) -- unlike every other provider in this module, which distinguishes rate-limiting/auth
-     * failures from a generic outage. A real API error must never be reported as a zero balance.
-     */
+    /** A real API error must never be silently reported as a zero balance. */
     private fun HttpResponse.requireSuccessOrThrow(context: String) {
         if (status.isSuccess()) return
         val error =

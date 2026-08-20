@@ -75,8 +75,6 @@ class PortfolioViewModelTest {
             val viewModel = PortfolioViewModel(repository)
             advanceUntilIdle()
 
-            // Exactly once: `observeSnapshot()` re-emits (still empty) after `refresh()` itself
-            // writes the refresh timestamp, and that must not re-trigger another auto-refresh.
             assertEquals(1, priceProvider.callCount)
             val snapshot = viewModel.uiState.value.snapshot
             assertNotNull(snapshot?.lastUpdated)

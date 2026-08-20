@@ -162,11 +162,6 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = koinViewModel()) {
     }
 }
 
-/**
- * A minimal circular-arrow glyph — same hand-drawn Canvas style as `CptNavIcons` — restoring a
- * small, discoverable tap affordance for [PortfolioViewModel.refresh] now that the header row no
- * longer has an icon of its own.
- */
 @Composable
 private fun RefreshGlyph(modifier: Modifier = Modifier) {
     val color = LocalContentColor.current
@@ -188,7 +183,7 @@ private fun RefreshGlyph(modifier: Modifier = Modifier) {
         val endAngleDegrees = REFRESH_ARC_START_ANGLE_DEGREES + REFRESH_ARC_SWEEP_ANGLE_DEGREES
         val endAngleRad = endAngleDegrees * (kotlin.math.PI / HALF_TURN_DEGREES)
         val tip = Offset(center.x + radius * cos(endAngleRad).toFloat(), center.y + radius * sin(endAngleRad).toFloat())
-        // Tangent of the arc at its end point (clockwise travel direction), used to orient the arrowhead.
+        // Tangent at the arc's end point, to orient the arrowhead.
         val tangent = Offset(-sin(endAngleRad).toFloat(), cos(endAngleRad).toFloat())
         val normal = Offset(-tangent.y, tangent.x)
         val arrowLength = diameter * REFRESH_ARROWHEAD_SIZE_FACTOR

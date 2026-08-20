@@ -1,20 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 12+ (API 31+) Auto Backup rules.
-
-  Excludes the Room database (wallet addresses + cached balances — see core/database's
-  AndroidDatabaseProvider and AppDatabase.DATABASE_FILE_NAME = "cpt.db") and the
-  EncryptedSharedPreferences file (exchange API keys/secrets — see core/secrets'
-  AndroidSecretStore.PREFS_FILE_NAME = "cpt_secrets") from both cloud backup and device-to-device
-  transfer.
-
-  The EncryptedSharedPreferences *values* are already AES-encrypted at rest with a key that lives
-  in the Android Keystore and never travels with a backup, so a restored copy of that file is
-  useless without the original device's key — but excluding it here is still correct belt-and-
-  suspenders (a restored file with no matching key is dead weight at best). The Room DB has no such
-  protection: it is plain SQLite, so without this exclusion wallet data would be restorable in
-  cleartext via any backup path. The -wal/-shm/-journal companions are excluded alongside the main
-  DB file since Room's default journal mode can leave data fragments in them too.
+  Excludes the Room DB (plain SQLite, so without this wallet data would be restorable in cleartext)
+  and the EncryptedSharedPreferences file (its ciphertext is inert without the Keystore key that
+  never travels with a backup, but excluding it too is correct belt-and-suspenders) from backup.
 -->
 <data-extraction-rules>
     <cloud-backup>

@@ -4,9 +4,7 @@ plugins {
     id("cpt.android.application")
 }
 
-// Release signing is optional and opt-in: if no `keystore.properties` file is present
-// (e.g. on a fresh checkout or in CI without secrets configured), the release build type
-// simply falls back to being unsigned, same as before this was introduced.
+// Opt-in: without a `keystore.properties` file, release falls back to unsigned.
 val keystorePropertiesFile = file("keystore.properties")
 val keystoreProperties =
     Properties().apply {

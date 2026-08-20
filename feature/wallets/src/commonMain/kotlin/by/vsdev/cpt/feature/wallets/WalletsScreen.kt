@@ -61,8 +61,7 @@ fun WalletsScreen(viewModel: WalletsViewModel = koinViewModel()) {
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     var displayName by rememberSaveable { mutableStateOf("") }
     var address by rememberSaveable { mutableStateOf("") }
-    // ChainId isn't guaranteed Parcelable/saveable on every KMP target, so the enum's name is
-    // saved as a plain String and mapped back rather than saving the enum value itself.
+    // ChainId isn't saveable on every KMP target, so its name is saved instead of the enum itself.
     var chainName by rememberSaveable { mutableStateOf(ChainId.ETHEREUM.name) }
     val chain = remember(chainName) { ChainId.valueOf(chainName) }
 

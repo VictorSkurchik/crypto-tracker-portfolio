@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** OKX and Bitget need a passphrase in addition to the key/secret; Binance and Bybit don't. */
 fun ExchangeId.requiresPassphrase(): Boolean = this == ExchangeId.OKX || this == ExchangeId.BITGET
 
 data class ConnectAccountUiState(
@@ -36,8 +35,7 @@ class ExchangesViewModel(
     private val _connectState = MutableStateFlow(ConnectAccountUiState())
     val connectState: StateFlow<ConnectAccountUiState> = _connectState.asStateFlow()
 
-    /** Verifies the credentials with a real API call before persisting them — a wrong key/secret
-     * should fail loudly here, not silently on the next portfolio refresh. */
+    /** Verifies credentials with a real API call so a wrong key/secret fails here, not silently later. */
     fun addAccount(
         displayName: String,
         exchange: ExchangeId,

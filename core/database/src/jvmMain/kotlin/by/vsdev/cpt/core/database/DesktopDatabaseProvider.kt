@@ -9,15 +9,9 @@ import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 
 /**
- * The on-device cache holds wallet addresses and account balances -- real financial/privacy data,
- * not just app plumbing -- so on a shared machine it deserves the same owner-only file permissions
- * `DesktopSecretStore` (`core/secrets`) already applies to its own files, rather than being left
- * at whatever default permissions SQLite/the OS umask happens to create its files with. Locking
- * down the containing directory to owner-only is what actually matters here: on POSIX filesystems
- * a directory without group/other execute permission blocks other local accounts from opening
- * *any* file inside it (the main `.db` file plus the `-wal`/`-shm` sidecar files SQLite's WAL mode
- * creates on demand) regardless of those files' own individual permissions, so this doesn't need
- * to chase every sidecar file Room/SQLite might create over the app's lifetime.
+ * Wallet addresses and balances are real financial data, so this locks the containing directory
+ * to owner-only — on POSIX filesystems that alone blocks other local accounts from opening the
+ * `.db` file or any `-wal`/`-shm` sidecar SQLite creates, without having to chase each one.
  */
 class DesktopDatabaseProvider(
     appDataDir: File = File(System.getProperty("user.home"), ".crypto-portfolio-tracker"),
@@ -34,8 +28,6 @@ class DesktopDatabaseProvider(
                 .setDriver(BundledSQLiteDriver())
                 .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
-        // Belt-and-suspenders: also lock the main file itself once Room/SQLite has created it,
-        // in addition to the directory-level protection above.
         if (databaseFile.exists()) restrictToOwner(databaseFile.toPath())
         database
     }
@@ -47,7 +39,7 @@ class DesktopDatabaseProvider(
             val permissions = if (Files.isDirectory(path)) OWNER_ONLY_DIR_PERMISSIONS else OWNER_ONLY_FILE_PERMISSIONS
             Files.setPosixFilePermissions(path, permissions)
         } else {
-            // Non-POSIX filesystem (e.g. Windows): best-effort fallback via the legacy File API.
+            // Non-POSIX filesystem, e.g. Windows.
             val file = path.toFile()
             file.setReadable(false, false)
             file.setReadable(true, true)

@@ -24,11 +24,7 @@ import java.time.Instant
 import java.util.Properties
 import kotlin.system.exitProcess
 
-/**
- * Same app-data directory convention used by [DesktopSecretStore] and [DesktopDatabaseProvider]:
- * a single well-known directory under the user's home holds all of this app's local state
- * (secrets, database, and now window-state/lock/crash-log files too).
- */
+/** Same app-data directory [DesktopSecretStore]/[DesktopDatabaseProvider] use. */
 private val appDataDir = File(System.getProperty("user.home"), ".crypto-portfolio-tracker")
 
 private const val DEFAULT_WINDOW_WIDTH_DP = 1200
@@ -38,9 +34,7 @@ fun main() {
     appDataDir.mkdirs()
     installCrashLogger()
 
-    // Held for the entire process lifetime via this top-level `val` (never closed, never let go
-    // out of scope) so the OS-level lock isn't released early; if another instance already holds
-    // it, this call prints a message to stderr and exits the process before Koin/DB/UI init.
+    // Kept as a val for the process lifetime so the OS-level lock isn't released early.
     @Suppress("UNUSED_VARIABLE")
     val instanceLock = acquireSingleInstanceLockOrExit()
 
@@ -72,12 +66,7 @@ fun main() {
     }
 }
 
-/**
- * Installs a process-wide uncaught-exception handler that appends a timestamp and stack trace to
- * a plain local text file, then delegates to whatever default handler was previously installed so
- * normal JVM termination/reporting behavior is preserved. Purely local: no network calls, no
- * third-party crash-reporting SDK.
- */
+/** Purely local crash log — no network calls, no third-party SDK. */
 private fun installCrashLogger() {
     val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
     val crashLogFile = File(appDataDir, "crash_log.txt")
@@ -93,11 +82,7 @@ private fun installCrashLogger() {
     }
 }
 
-/**
- * Acquires an exclusive file lock guarding against a second concurrent instance of this app
- * running against the same local database/secret store. If the lock is already held, this prints
- * a message to stderr and terminates the process before any Koin/database/UI setup happens.
- */
+/** Guards against a second instance contending for the same local database/secret store. */
 private fun acquireSingleInstanceLockOrExit(): FileLock {
     val lockFile = File(appDataDir, "instance.lock")
     val channel = FileChannel.open(lockFile.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)

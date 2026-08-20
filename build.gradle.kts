@@ -1,7 +1,5 @@
-// Every module's actual setup comes from a `cpt.*` convention plugin (see build-logic/convention).
-// The block below doesn't configure anything itself — `apply false` here is what lets those
-// convention plugins later `id("com.android.application")` etc. with no version of their own:
-// this is where each plugin's version (from the catalog) gets resolved for the whole build.
+// `apply false` here only resolves each plugin's version for the whole build; actual module setup
+// comes from the `cpt.*` convention plugins (build-logic/convention), which apply these by id.
 plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
@@ -16,9 +14,8 @@ plugins {
     alias(libs.plugins.detekt) apply false
 }
 
-// `version.xcconfig` at the repo root is the single source of truth for the app's version,
-// shared with iosApp/Configuration/Config.xcconfig via `#include`. Parsed here (plain
-// `KEY = value` lines, xcconfig syntax) so Android/Desktop read the exact same values.
+// Parses the same version.xcconfig that iosApp/Configuration/Config.xcconfig `#include`s, so
+// Android/Desktop read the exact values iOS does.
 private val versionProps =
     file("version.xcconfig").readLines()
         .mapNotNull { line ->

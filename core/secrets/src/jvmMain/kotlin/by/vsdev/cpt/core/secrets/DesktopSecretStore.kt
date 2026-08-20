@@ -13,28 +13,16 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
- * Desktop has no universal OS-keyring API from pure JVM, so this is the weakest of the three
- * platform implementations: values are AES-256-GCM encrypted with a key generated on first run
- * and stored alongside the ciphertext in a file under the user's home directory.
+ * Weakest of the three platform stores: no universal OS-keyring API from pure JVM, so values are
+ * AES-256-GCM encrypted with a key generated on first run and stored alongside the ciphertext.
  *
- * Residual risk (read before assuming this is "fixed"): the encryption key (`secrets.key`) and
- * the ciphertext (`secrets.properties`) both live on disk in the same directory, protected only
- * by OS file/directory permissions. This class now enforces and *re-verifies* owner-only
- * permissions on the directory and both files on every access rather than only setting them once
- * and hoping — a widened permission is treated as tampering and fails loudly instead of silently
- * decrypting anyway. That raises the bar against other unprivileged local accounts, but it is a
- * ceiling, not a real fix: any process running as the *same* OS user (malware, another app, a
- * co-worker with a shell on a shared machine) can still read both files and decrypt everything,
- * because the key itself is stored in directly-usable form.
- *
- * The actual fix is to stop persisting the DEK in directly-usable form at all: derive/wrap it from
- * a user-entered master passphrase via `PBKDF2WithHmacSHA256` (already built into the JDK's
- * `SecretKeyFactory` — no new dependency needed) so only someone who knows the passphrase can
- * unwrap it. That is a real product/UX change (a passphrase prompt + unlock flow on app start,
- * wired through desktopApp's DI, which constructs this class with a no-arg call today) that needs
- * product sign-off and touches modules outside `core/secrets`, so it is intentionally not done
- * here. True OS-keyring parity (macOS Keychain / Windows DPAPI / Linux libsecret) would need
- * native bindings that can't be built and tested cross-platform in this environment.
+ * Residual risk: the key (`secrets.key`) and ciphertext (`secrets.properties`) both live in the
+ * same directory, protected only by file permissions, which this class enforces and re-verifies
+ * on every access (fails loudly if widened, rather than silently decrypting). That's a ceiling,
+ * not a fix — any process running as the same OS user can still read and decrypt everything. A
+ * real fix needs a user passphrase (via `PBKDF2WithHmacSHA256`) wrapping the key, which is a
+ * product/UX decision outside this module's scope; true OS-keyring parity would need native
+ * bindings this environment can't build/test cross-platform.
  */
 @OptIn(ExperimentalEncodingApi::class)
 class DesktopSecretStore(
