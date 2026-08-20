@@ -21,7 +21,7 @@ class ExchangesViewModel(
     val accounts: StateFlow<List<Account.ExchangeAccount>> =
         exchangesRepository
             .observeAccounts()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
 
     fun addAccount(
         displayName: String,
@@ -47,5 +47,9 @@ class ExchangesViewModel(
         credentialsRef: String,
     ) {
         viewModelScope.launch { exchangesRepository.removeAccount(id, credentialsRef) }
+    }
+
+    private companion object {
+        const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
     }
 }

@@ -17,7 +17,7 @@ class WalletsViewModel(
     val wallets: StateFlow<List<Account.OnChainWallet>> =
         walletsRepository
             .observeWallets()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
 
     fun addWallet(
         displayName: String,
@@ -32,5 +32,9 @@ class WalletsViewModel(
 
     fun removeWallet(id: AccountId) {
         viewModelScope.launch { walletsRepository.removeWallet(id) }
+    }
+
+    private companion object {
+        const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
     }
 }

@@ -8,6 +8,7 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
 class IosDatabaseProvider : DatabaseProvider {
+    @Suppress("InjectDispatcher")
     private val instance: AppDatabase by lazy {
         val documentsDirectory =
             NSSearchPathForDirectoriesInDomains(

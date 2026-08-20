@@ -29,7 +29,7 @@ class DesktopSecretStore(
 
     private val secretKey: SecretKeySpec by lazy {
         if (!keyFile.exists()) {
-            val bytes = ByteArray(32)
+            val bytes = ByteArray(AES_256_KEY_BYTES)
             SecureRandom().nextBytes(bytes)
             keyFile.writeBytes(bytes)
             runCatching {
@@ -78,9 +78,9 @@ class DesktopSecretStore(
     }
 
     private fun encrypt(plaintext: String): String {
-        val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }
+        val iv = ByteArray(GCM_IV_BYTES).also { SecureRandom().nextBytes(it) }
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
         val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
         return Base64.encode(iv) + ":" + Base64.encode(ciphertext)
     }
@@ -91,7 +91,13 @@ class DesktopSecretStore(
         val iv = Base64.decode(parts[0])
         val ciphertext = Base64.decode(parts[1])
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(GCM_TAG_BITS, iv))
         return cipher.doFinal(ciphertext).toString(Charsets.UTF_8)
+    }
+
+    private companion object {
+        const val AES_256_KEY_BYTES = 32
+        const val GCM_IV_BYTES = 12
+        const val GCM_TAG_BITS = 128
     }
 }

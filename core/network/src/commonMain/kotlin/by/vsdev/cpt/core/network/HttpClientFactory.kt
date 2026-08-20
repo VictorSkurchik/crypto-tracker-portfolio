@@ -27,7 +27,10 @@ fun createHttpClient(): HttpClient =
             level = LogLevel.INFO
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 15_000
-            connectTimeoutMillis = 10_000
+            requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+            connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
         }
     }
+
+private const val REQUEST_TIMEOUT_MILLIS = 15_000L
+private const val CONNECT_TIMEOUT_MILLIS = 10_000L

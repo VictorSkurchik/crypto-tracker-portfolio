@@ -20,7 +20,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
     Scaffold { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             Text(
-                "These platform-level keys are used to price your holdings and read EVM chain balances — get a free key from coinmarketcap.com/api and etherscan.io/apis.",
+                "These platform-level keys are used to price your holdings and read EVM chain balances — " +
+                    "get a free key from coinmarketcap.com/api and etherscan.io/apis.",
             )
             OutlinedTextField(
                 value = state.coinMarketCapApiKey,

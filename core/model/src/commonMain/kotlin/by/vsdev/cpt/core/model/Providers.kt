@@ -13,7 +13,7 @@ sealed interface ExchangeCredentials {
     ) : ExchangeCredentials
 }
 
-/** One implementation per on-chain network family (EVM chains share one implementation; TON/TRON each need their own). */
+/** One implementation per chain family: EVM chains share one, TON and TRON each need their own. */
 interface OnChainProvider {
     fun supports(chainId: ChainId): Boolean
 

@@ -17,7 +17,7 @@ class CustomAssetsViewModel(
     val assets: StateFlow<List<Account.CustomAsset>> =
         customAssetsRepository
             .observeAssets()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
 
     fun addFixedPriceAsset(
         displayName: String,
@@ -55,5 +55,9 @@ class CustomAssetsViewModel(
 
     fun removeAsset(id: AccountId) {
         viewModelScope.launch { customAssetsRepository.removeAsset(id) }
+    }
+
+    private companion object {
+        const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
     }
 }

@@ -11,6 +11,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  */
 @OptIn(ExperimentalEncodingApi::class)
 object HmacSigner {
+    @Suppress("MagicNumber")
     fun hex(
         secret: String,
         message: String,

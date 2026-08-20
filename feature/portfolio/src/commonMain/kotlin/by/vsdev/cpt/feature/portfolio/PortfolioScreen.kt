@@ -75,7 +75,10 @@ private fun AccountRow(
     }
 }
 
+private const val CENTS_PER_DOLLAR = 100
+
 private fun formatUsd(value: Double): String {
-    val rounded = (value * 100).let { if (it < 0) kotlin.math.ceil(it) else kotlin.math.floor(it) } / 100
+    val rounded =
+        (value * CENTS_PER_DOLLAR).let { if (it < 0) kotlin.math.ceil(it) else kotlin.math.floor(it) } / CENTS_PER_DOLLAR
     return rounded.toString()
 }
