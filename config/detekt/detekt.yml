@@ -11,6 +11,7 @@ style:
 complexity:
   LongParameterList:
     constructorThreshold: 8
+    ignoreAnnotated: ['Composable']
   LongMethod:
     ignoreAnnotated: ['Composable']
 

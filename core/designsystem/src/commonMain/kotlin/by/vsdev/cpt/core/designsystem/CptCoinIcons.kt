@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package by.vsdev.cpt.core.designsystem
 
 import androidx.compose.foundation.background
@@ -30,9 +32,17 @@ private data class CptCoinStyle(
     val glyph: CptGlyphMark,
 )
 
+private const val SQUARE_CORNER_RADIUS_FRACTION = 0.28f
+private const val GLYPH_SIZE_FRACTION = 0.4f
+private const val DIAMOND_SCALE_FRACTION = 0.82f
+private const val DIAMOND_ROTATION_DEGREES = 45f
+
+// Colors below are the design's per-hue OKLCH background/mark tokens, already fully specified by
+// the ticker key they're mapped under — a named constant per literal would only restate that.
+@Suppress("MagicNumber")
 private val CptCoinFallback = CptCoinStyle(Color(0xFFF1EFEA), Color(0xFF6E6B63), CptGlyphMark.DOT)
 
-// Ticker -> style, derived from the design's per-hue OKLCH background/mark colors.
+@Suppress("MagicNumber")
 private val CptCoinStyles: Map<String, CptCoinStyle> =
     mapOf(
         "BN" to CptCoinStyle(Color(0xFFF6E6C7), Color(0xFF604200), CptGlyphMark.DIAMOND),
@@ -63,12 +73,13 @@ fun CptCoinBadge(
     size: Dp = 24.dp,
 ) {
     val style = CptCoinStyles[symbol.uppercase()] ?: CptCoinFallback
-    val containerShape = if (shape == CptBadgeShape.SQUARE) RoundedCornerShape(size * 0.28f) else CircleShape
+    val containerShape =
+        if (shape == CptBadgeShape.SQUARE) RoundedCornerShape(size * SQUARE_CORNER_RADIUS_FRACTION) else CircleShape
     Box(
         modifier = modifier.size(size).background(style.background, containerShape),
         contentAlignment = Alignment.Center,
     ) {
-        CptGlyph(style.glyph, style.mark, size * 0.4f)
+        CptGlyph(style.glyph, style.mark, size * GLYPH_SIZE_FRACTION)
     }
 }
 
@@ -82,6 +93,11 @@ private fun CptGlyph(
         CptGlyphMark.DOT -> Box(Modifier.size(size).background(color, CircleShape))
         CptGlyphMark.RING -> Box(Modifier.size(size).border(2.dp, color, CircleShape))
         CptGlyphMark.DIAMOND ->
-            Box(Modifier.size(size * 0.82f).rotate(45f).border(2.dp, color, RectangleShape))
+            Box(
+                Modifier
+                    .size(size * DIAMOND_SCALE_FRACTION)
+                    .rotate(DIAMOND_ROTATION_DEGREES)
+                    .border(2.dp, color, RectangleShape),
+            )
     }
 }

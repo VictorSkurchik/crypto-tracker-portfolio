@@ -14,6 +14,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 
+private const val DIAMOND_ROTATION_DEGREES = 45f
+
 /** Small geometric glyphs for the app's 5 top-level destinations. Tint follows [LocalContentColor]. */
 object CptNavIcons {
     @Composable
@@ -45,7 +47,7 @@ object CptNavIcons {
         Box(
             modifier
                 .size(9.dp)
-                .rotate(45f)
+                .rotate(DIAMOND_ROTATION_DEGREES)
                 .border(1.5.dp, LocalContentColor.current, RoundedCornerShape(1.dp)),
         )
     }
