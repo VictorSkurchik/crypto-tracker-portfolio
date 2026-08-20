@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,12 +32,24 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ExchangesScreen(viewModel: ExchangesViewModel = koinViewModel()) {
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val connectState by viewModel.connectState.collectAsStateWithLifecycle()
     var displayName by remember { mutableStateOf("") }
     var apiKey by remember { mutableStateOf("") }
     var apiSecret by remember { mutableStateOf("") }
     var passphrase by remember { mutableStateOf("") }
     var exchange by remember { mutableStateOf(ExchangeId.BINANCE) }
     var exchangeMenuExpanded by remember { mutableStateOf(false) }
+
+    var wasVerifying by remember { mutableStateOf(false) }
+    LaunchedEffect(connectState) {
+        if (wasVerifying && !connectState.isVerifying && connectState.connectionError == null) {
+            displayName = ""
+            apiKey = ""
+            apiSecret = ""
+            passphrase = ""
+        }
+        wasVerifying = connectState.isVerifying
+    }
 
     Scaffold { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
@@ -46,6 +61,7 @@ fun ExchangesScreen(viewModel: ExchangesViewModel = koinViewModel()) {
                         DropdownMenuItem(text = { Text(entry.name) }, onClick = {
                             exchange = entry
                             exchangeMenuExpanded = false
+                            viewModel.clearConnectionError()
                         })
                     }
                 }
@@ -58,13 +74,19 @@ fun ExchangesScreen(viewModel: ExchangesViewModel = koinViewModel()) {
             )
             OutlinedTextField(
                 value = apiKey,
-                onValueChange = { apiKey = it },
+                onValueChange = {
+                    apiKey = it
+                    viewModel.clearConnectionError()
+                },
                 label = { Text("API key") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
             OutlinedTextField(
                 value = apiSecret,
-                onValueChange = { apiSecret = it },
+                onValueChange = {
+                    apiSecret = it
+                    viewModel.clearConnectionError()
+                },
                 label = { Text("API secret") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -72,22 +94,32 @@ fun ExchangesScreen(viewModel: ExchangesViewModel = koinViewModel()) {
             if (exchange.requiresPassphrase()) {
                 OutlinedTextField(
                     value = passphrase,
-                    onValueChange = { passphrase = it },
+                    onValueChange = {
+                        passphrase = it
+                        viewModel.clearConnectionError()
+                    },
                     label = { Text("Passphrase") },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
             }
+            if (connectState.connectionError != null) {
+                Text(
+                    "Connection failed: ${connectState.connectionError}",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             Button(
-                onClick = {
-                    viewModel.addAccount(displayName, exchange, apiKey, apiSecret, passphrase)
-                    displayName = ""
-                    apiKey = ""
-                    apiSecret = ""
-                    passphrase = ""
-                },
+                onClick = { viewModel.addAccount(displayName, exchange, apiKey, apiSecret, passphrase) },
+                enabled = !connectState.isVerifying,
                 modifier = Modifier.padding(top = 8.dp),
-            ) { Text("Connect") }
+            ) {
+                if (connectState.isVerifying) {
+                    CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
+                }
+                Text(if (connectState.isVerifying) "Verifying…" else "Connect")
+            }
 
             LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                 items(accounts) { account ->
