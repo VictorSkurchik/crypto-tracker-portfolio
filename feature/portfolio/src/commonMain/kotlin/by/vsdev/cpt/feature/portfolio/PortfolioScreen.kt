@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import by.vsdev.cpt.core.model.AccountBreakdown
+import by.vsdev.cpt.core.model.ProviderError
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -48,17 +50,28 @@ fun PortfolioScreen(viewModel: PortfolioViewModel = koinViewModel()) {
                         Text("$${formatUsd(snapshot.totalValueUsd)}")
                     }
                 }
-                items(snapshot.byAccount) { account -> AccountRow(account) }
+                items(snapshot.byAccount) { account ->
+                    AccountRow(account, error = state.lastErrors[account.accountId.value])
+                }
             }
         }
     }
 }
 
 @Composable
-private fun AccountRow(account: AccountBreakdown) {
+private fun AccountRow(
+    account: AccountBreakdown,
+    error: ProviderError?,
+) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(account.displayName)
         Text("$${formatUsd(account.valueUsd)}")
+        if (error != null) {
+            Text(
+                "Sync failed: ${error.message}",
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 
