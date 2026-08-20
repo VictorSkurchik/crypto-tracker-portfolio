@@ -1,0 +1,18 @@
+root = true
+
+[*.{kt,kts}]
+indent_size = 4
+insert_final_newline = true
+max_line_length = 140
+# JVM entry-point files conventionally stay lowercase (main.kt); ktlint's PascalCase filename
+# rule doesn't special-case them, so relax it globally rather than fight file-naming conventions.
+ktlint_standard_filename = disabled
+# Compose functions and Kotlin/Native UIViewController factory functions are conventionally
+# PascalCase, matching the "component"/type they produce — disable rather than special-case each.
+ktlint_standard_function-naming = disabled
+# The `ktlint { filter { exclude ... } }` block in build-logic doesn't reliably reach every
+# per-source-set ktlint task for KMP-generated Compose-resources sources (build/generated/**), so
+# these two rules — which only ever fire on that generated code, never on anything hand-written —
+# are disabled globally rather than chased per task.
+ktlint_standard_class-naming = disabled
+ktlint_standard_package-name = disabled
