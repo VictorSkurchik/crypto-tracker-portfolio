@@ -22,10 +22,19 @@ class PortfolioViewModel(
     private val _uiState = MutableStateFlow(PortfolioUiState())
     val uiState: StateFlow<PortfolioUiState> = _uiState.asStateFlow()
 
+    // Guards against re-triggering the initial refresh on every subsequent emission of an
+    // otherwise still-empty snapshot (e.g. the one `observeSnapshot()` emits as a side effect of
+    // `refresh()` itself writing the refresh timestamp) — it must fire at most once per ViewModel.
+    private var hasTriggeredInitialRefresh = false
+
     init {
         viewModelScope.launch {
             portfolioRepository.observeSnapshot().collect { snapshot ->
                 _uiState.value = _uiState.value.copy(snapshot = snapshot)
+                if (!hasTriggeredInitialRefresh && snapshot.byAccount.isEmpty()) {
+                    hasTriggeredInitialRefresh = true
+                    refresh()
+                }
             }
         }
     }

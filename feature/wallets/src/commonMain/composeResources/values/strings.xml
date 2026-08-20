@@ -1,0 +1,9 @@
+<resources>
+    <string name="wallets_title">Add wallet</string>
+    <string name="wallets_chain_label">Chain</string>
+    <string name="wallets_label_optional">Label (optional)</string>
+    <string name="wallets_address_label">Wallet address</string>
+    <string name="wallets_add_button">Add wallet</string>
+    <string name="wallets_remove_button">Remove</string>
+    <string name="wallets_empty_state">No wallets yet — add one above to start tracking its balance.</string>
+</resources>

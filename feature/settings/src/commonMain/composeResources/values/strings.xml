@@ -1,0 +1,8 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_description">These platform-level keys are used to price your holdings and read EVM chain balances.</string>
+    <string name="settings_cmc_api_key_field">CoinMarketCap API key</string>
+    <string name="settings_cmc_helper_text">Get a free key at coinmarketcap.com/api</string>
+    <string name="settings_etherscan_api_key_field">Etherscan API key</string>
+    <string name="settings_etherscan_helper_text">Get a free key at etherscan.io/apis</string>
+</resources>

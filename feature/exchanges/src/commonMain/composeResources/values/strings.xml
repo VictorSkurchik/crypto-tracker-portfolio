@@ -1,0 +1,14 @@
+<resources>
+    <string name="exchanges_add_title">Add exchange</string>
+    <string name="exchanges_readonly_hint">Read-only API key recommended — never grant withdrawal permission.</string>
+    <string name="exchanges_exchange_label">Exchange</string>
+    <string name="exchanges_label_optional">Label (optional)</string>
+    <string name="exchanges_api_key_label">API key</string>
+    <string name="exchanges_api_secret_label">API secret</string>
+    <string name="exchanges_passphrase_label">Passphrase</string>
+    <string name="exchanges_connection_failed">Connection failed: %1$s</string>
+    <string name="exchanges_verifying">Verifying…</string>
+    <string name="exchanges_connect">Connect</string>
+    <string name="exchanges_empty_state">No exchange accounts yet — connect one above to see its balances here.</string>
+    <string name="exchanges_remove">Remove</string>
+</resources>

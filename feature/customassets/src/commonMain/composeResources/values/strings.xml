@@ -1,0 +1,14 @@
+<resources>
+    <string name="customassets_title">Add custom asset</string>
+    <string name="customassets_label_field">Label (optional)</string>
+    <string name="customassets_symbol_field">Symbol (e.g. BTC)</string>
+    <string name="customassets_quantity_field">Quantity</string>
+    <string name="customassets_live_price_switch_label">Live price from CoinMarketCap</string>
+    <string name="customassets_cmc_symbol_field">CoinMarketCap symbol</string>
+    <string name="customassets_fixed_price_field">Fixed price (USD per unit)</string>
+    <string name="customassets_add_button">Add asset</string>
+    <string name="customassets_empty_state">No custom assets yet — add one above to track it in your portfolio.</string>
+    <string name="customassets_fixed_pricing_summary">%1$s %2$s @ $%3$s</string>
+    <string name="customassets_live_pricing_summary">%1$s %2$s (live: %3$s)</string>
+    <string name="customassets_remove_button">Remove</string>
+</resources>

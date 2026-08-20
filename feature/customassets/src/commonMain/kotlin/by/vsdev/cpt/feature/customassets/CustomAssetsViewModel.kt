@@ -27,13 +27,15 @@ class CustomAssetsViewModel(
     fun addFixedPriceAsset(
         displayName: String,
         symbol: String,
-        quantity: Double,
-        unitPriceUsd: Double,
+        quantity: Double?,
+        unitPriceUsd: Double?,
     ) {
         val error =
             when {
                 symbol.isBlank() -> "Symbol is required"
+                quantity == null -> "Quantity must be a valid number"
                 quantity <= 0.0 -> "Quantity must be greater than zero"
+                unitPriceUsd == null -> "Price must be a valid number"
                 unitPriceUsd <= 0.0 -> "Price must be greater than zero"
                 else -> null
             }
@@ -46,8 +48,8 @@ class CustomAssetsViewModel(
             customAssetsRepository.addAsset(
                 displayName.ifBlank { symbol },
                 symbol.trim().uppercase(),
-                quantity,
-                CustomAssetPricing.Fixed(unitPriceUsd),
+                checkNotNull(quantity),
+                CustomAssetPricing.Fixed(checkNotNull(unitPriceUsd)),
             )
         }
     }
@@ -55,12 +57,13 @@ class CustomAssetsViewModel(
     fun addLivePricedAsset(
         displayName: String,
         symbol: String,
-        quantity: Double,
+        quantity: Double?,
         cmcSymbol: String,
     ) {
         val error =
             when {
                 symbol.isBlank() -> "Symbol is required"
+                quantity == null -> "Quantity must be a valid number"
                 quantity <= 0.0 -> "Quantity must be greater than zero"
                 cmcSymbol.isBlank() -> "CoinMarketCap symbol is required"
                 else -> null
@@ -74,7 +77,7 @@ class CustomAssetsViewModel(
             customAssetsRepository.addAsset(
                 displayName.ifBlank { symbol },
                 symbol.trim().uppercase(),
-                quantity,
+                checkNotNull(quantity),
                 CustomAssetPricing.LiveFromCoinMarketCap(cmcSymbol.trim().uppercase()),
             )
         }

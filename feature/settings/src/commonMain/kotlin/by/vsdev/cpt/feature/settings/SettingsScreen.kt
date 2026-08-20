@@ -13,6 +13,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import by.vsdev.cpt.core.designsystem.CptUnderlineTextField
+import crypto_portfolio_tracker.feature.settings.generated.resources.Res
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_cmc_api_key_field
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_cmc_helper_text
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_description
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_etherscan_api_key_field
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_etherscan_helper_text
+import crypto_portfolio_tracker.feature.settings.generated.resources.settings_title
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -21,9 +29,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
 
     Scaffold { padding ->
         Column(modifier = Modifier.padding(padding).padding(20.dp)) {
-            Text("Settings", style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp))
             Text(
-                "These platform-level keys are used to price your holdings and read EVM chain balances.",
+                stringResource(Res.string.settings_title),
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp),
+            )
+            Text(
+                stringResource(Res.string.settings_description),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 16.dp, bottom = 28.dp),
@@ -31,11 +42,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
             CptUnderlineTextField(
                 value = state.coinMarketCapApiKey,
                 onValueChange = viewModel::setCoinMarketCapApiKey,
-                label = { Text("CoinMarketCap API key") },
+                label = { Text(stringResource(Res.string.settings_cmc_api_key_field)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                "Get a free key at coinmarketcap.com/api",
+                stringResource(Res.string.settings_cmc_helper_text),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp, bottom = 24.dp),
@@ -43,11 +54,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel()) {
             CptUnderlineTextField(
                 value = state.etherscanApiKey,
                 onValueChange = viewModel::setEtherscanApiKey,
-                label = { Text("Etherscan API key") },
+                label = { Text(stringResource(Res.string.settings_etherscan_api_key_field)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                "Get a free key at etherscan.io/apis",
+                stringResource(Res.string.settings_etherscan_helper_text),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp),

@@ -1,0 +1,13 @@
+<resources>
+    <string name="portfolio_total_value_label">Total portfolio value</string>
+    <string name="portfolio_refreshing">Refreshing…</string>
+    <string name="portfolio_not_updated_yet">Not updated yet</string>
+    <string name="portfolio_updated_just_now">Updated just now</string>
+    <string name="portfolio_updated_minutes_ago">Updated %1$dm ago</string>
+    <string name="portfolio_updated_hours_ago">Updated %1$dh ago</string>
+    <string name="portfolio_updated_days_ago">Updated %1$dd ago</string>
+    <string name="portfolio_empty_state">No accounts yet — add a wallet, exchange, or custom asset to get started.</string>
+    <string name="portfolio_by_account_header">By account</string>
+    <string name="portfolio_by_asset_header">By asset</string>
+    <string name="portfolio_sync_failed">Sync failed: %1$s</string>
+</resources>
