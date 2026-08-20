@@ -25,7 +25,7 @@ class ExchangesRepository(
 ) {
     fun observeAccounts(): Flow<List<Account.ExchangeAccount>> =
         exchangeAccountDao.observeAll().map { entities ->
-            entities.map { it.toDomain() }
+            entities.mapNotNull { it.toDomain() }
         }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -37,9 +37,17 @@ class ExchangesRepository(
         val id = AccountId(Uuid.random().toString())
         val credentialsRef = "exchange_credentials_${id.value}"
         secretStore.store(credentialsRef, Json.encodeToString(SerializableCredentials.serializer(), credentials.toSerializable()))
-        exchangeAccountDao.upsert(
-            ExchangeAccountEntity(id = id.value, displayName = displayName, exchange = exchange.name, credentialsRef = credentialsRef),
-        )
+        try {
+            exchangeAccountDao.upsert(
+                ExchangeAccountEntity(id = id.value, displayName = displayName, exchange = exchange.name, credentialsRef = credentialsRef),
+            )
+        } catch (e: Exception) {
+            // The secret was written but the row it's referenced by never made it into the DB —
+            // remove it so it doesn't linger as an orphaned, unreferenced entry, then surface the
+            // original failure.
+            secretStore.remove(credentialsRef)
+            throw e
+        }
         return Account.ExchangeAccount(id = id, displayName = displayName, exchange = exchange, credentialsRef = credentialsRef)
     }
 
@@ -48,22 +56,40 @@ class ExchangesRepository(
         return Json.decodeFromString(SerializableCredentials.serializer(), json).toDomain()
     }
 
+    /**
+     * Removes the secret before the DB row (the reverse of [addAccount]'s write order) so that if
+     * one half fails, the account is left in a self-healing state instead of an orphaned one: a
+     * failure deleting the secret leaves the row (and its secret) untouched for a clean retry; a
+     * failure deleting the row afterwards leaves it referencing an already-gone secret, which
+     * [resolveCredentials] already treats as a plain "missing credentials" account-level error —
+     * and a retried [removeAccount] call still finishes the job, since removing an already-removed
+     * secret is a no-op.
+     */
     suspend fun removeAccount(
         id: AccountId,
         credentialsRef: String,
     ) {
-        exchangeAccountDao.delete(id.value)
         secretStore.remove(credentialsRef)
+        exchangeAccountDao.delete(id.value)
     }
 }
 
-private fun ExchangeAccountEntity.toDomain() =
-    Account.ExchangeAccount(
+/**
+ * Returns `null` (instead of throwing, like [ExchangeId.valueOf] would) when
+ * [ExchangeAccountEntity.exchange] doesn't match any current [ExchangeId] constant, so an
+ * exchange removed/renamed in a future release just drops that one stored account from the list
+ * rather than crashing [observeAccounts] — and with it the whole Exchanges/Portfolio screen — for
+ * every user with that value persisted.
+ */
+private fun ExchangeAccountEntity.toDomain(): Account.ExchangeAccount? {
+    val exchangeId = ExchangeId.entries.firstOrNull { it.name == exchange } ?: return null
+    return Account.ExchangeAccount(
         id = AccountId(id),
         displayName = displayName,
-        exchange = ExchangeId.valueOf(exchange),
+        exchange = exchangeId,
         credentialsRef = credentialsRef,
     )
+}
 
 @Serializable
 private data class SerializableCredentials(

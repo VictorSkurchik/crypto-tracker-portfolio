@@ -15,7 +15,7 @@ class WalletsRepository(
 ) {
     fun observeWallets(): Flow<List<Account.OnChainWallet>> =
         walletDao.observeAll().map { entities ->
-            entities.map { it.toDomain() }
+            entities.mapNotNull { it.toDomain() }
         }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -36,10 +36,18 @@ class WalletsRepository(
     }
 }
 
-private fun WalletEntity.toDomain() =
-    Account.OnChainWallet(
+/**
+ * Returns `null` (instead of throwing, like [ChainId.valueOf] would) when [WalletEntity.chain]
+ * doesn't match any current [ChainId] constant, so a chain removed/renamed in a future release
+ * just drops that one stored wallet from the list rather than crashing [observeWallets] — and
+ * with it the whole Wallets/Portfolio screen — for every user with that value persisted.
+ */
+private fun WalletEntity.toDomain(): Account.OnChainWallet? {
+    val chainId = ChainId.entries.firstOrNull { it.name == chain } ?: return null
+    return Account.OnChainWallet(
         id = AccountId(id),
         displayName = displayName,
-        chain = ChainId.valueOf(chain),
+        chain = chainId,
         address = address,
     )
+}
