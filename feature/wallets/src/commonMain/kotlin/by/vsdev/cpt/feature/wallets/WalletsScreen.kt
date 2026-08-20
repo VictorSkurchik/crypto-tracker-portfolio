@@ -28,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun WalletsScreen(viewModel: WalletsViewModel = koinViewModel()) {
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     var displayName by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var chain by remember { mutableStateOf(ChainId.ETHEREUM) }
@@ -43,6 +44,7 @@ fun WalletsScreen(viewModel: WalletsViewModel = koinViewModel()) {
                         DropdownMenuItem(text = { Text(entry.name) }, onClick = {
                             chain = entry
                             chainMenuExpanded = false
+                            viewModel.clearAddressError()
                         })
                     }
                 }
@@ -55,15 +57,22 @@ fun WalletsScreen(viewModel: WalletsViewModel = koinViewModel()) {
             )
             OutlinedTextField(
                 value = address,
-                onValueChange = { address = it },
+                onValueChange = {
+                    address = it
+                    viewModel.clearAddressError()
+                },
                 label = { Text("Wallet address") },
+                isError = addressError != null,
+                supportingText = { addressError?.let { Text(it) } },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
             Button(
                 onClick = {
                     viewModel.addWallet(displayName, chain, address)
-                    displayName = ""
-                    address = ""
+                    if (addressError == null) {
+                        displayName = ""
+                        address = ""
+                    }
                 },
                 modifier = Modifier.padding(top = 8.dp),
             ) { Text("Add wallet") }

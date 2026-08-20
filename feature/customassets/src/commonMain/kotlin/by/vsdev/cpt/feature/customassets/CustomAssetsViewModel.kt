@@ -6,8 +6,10 @@ import by.vsdev.cpt.core.data.CustomAssetsRepository
 import by.vsdev.cpt.core.model.Account
 import by.vsdev.cpt.core.model.AccountId
 import by.vsdev.cpt.core.model.CustomAssetPricing
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -19,13 +21,27 @@ class CustomAssetsViewModel(
             .observeAssets()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
 
+    private val _validationError = MutableStateFlow<String?>(null)
+    val validationError: StateFlow<String?> = _validationError.asStateFlow()
+
     fun addFixedPriceAsset(
         displayName: String,
         symbol: String,
         quantity: Double,
         unitPriceUsd: Double,
     ) {
-        if (symbol.isBlank() || quantity <= 0.0) return
+        val error =
+            when {
+                symbol.isBlank() -> "Symbol is required"
+                quantity <= 0.0 -> "Quantity must be greater than zero"
+                unitPriceUsd <= 0.0 -> "Price must be greater than zero"
+                else -> null
+            }
+        if (error != null) {
+            _validationError.value = error
+            return
+        }
+        _validationError.value = null
         viewModelScope.launch {
             customAssetsRepository.addAsset(
                 displayName.ifBlank { symbol },
@@ -42,7 +58,18 @@ class CustomAssetsViewModel(
         quantity: Double,
         cmcSymbol: String,
     ) {
-        if (symbol.isBlank() || quantity <= 0.0 || cmcSymbol.isBlank()) return
+        val error =
+            when {
+                symbol.isBlank() -> "Symbol is required"
+                quantity <= 0.0 -> "Quantity must be greater than zero"
+                cmcSymbol.isBlank() -> "CoinMarketCap symbol is required"
+                else -> null
+            }
+        if (error != null) {
+            _validationError.value = error
+            return
+        }
+        _validationError.value = null
         viewModelScope.launch {
             customAssetsRepository.addAsset(
                 displayName.ifBlank { symbol },
@@ -51,6 +78,10 @@ class CustomAssetsViewModel(
                 CustomAssetPricing.LiveFromCoinMarketCap(cmcSymbol.trim().uppercase()),
             )
         }
+    }
+
+    fun clearValidationError() {
+        _validationError.value = null
     }
 
     fun removeAsset(id: AccountId) {
