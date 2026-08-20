@@ -49,7 +49,7 @@ android {
 
 androidComponents {
     onVariants { variant ->
-        val baseVersionName = providers.gradleProperty("cpt.versionName").getOrElse("1.0.0")
+        val baseVersionName = rootProject.extra["cptVersionName"] as String
         val flavorSuffix = if (variant.flavorName == "prod") "" else "-${variant.flavorName}"
         val buildTypeSuffix = if (variant.buildType == "release") "-release" else "-debug"
         variant.outputs.forEach { output ->

@@ -22,7 +22,16 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "crypto-portfolio-tracker"
-            packageVersion = "1.0.0"
+            packageVersion = rootProject.extra["cptVersionName"] as String
+            macOS {
+                iconFile.set(project.file("icons/crypto-portfolio-tracker.icns"))
+            }
+            windows {
+                iconFile.set(project.file("icons/crypto-portfolio-tracker.ico"))
+            }
+            linux {
+                iconFile.set(project.file("icons/crypto-portfolio-tracker-512.png"))
+            }
         }
     }
 }

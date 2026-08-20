@@ -1,0 +1,10 @@
+// Single source of truth for the app's version across Android, Desktop, and iOS.
+// Bump both values together for each release:
+//  - MARKETING_VERSION       -> Android versionName / Desktop packageVersion / iOS MARKETING_VERSION
+//  - CURRENT_PROJECT_VERSION -> Android versionCode / iOS CURRENT_PROJECT_VERSION
+//    (must stay strictly increasing across releases — Play Store enforces this for versionCode)
+//
+// Read directly by iosApp/Configuration/Config.xcconfig (#include) and by the root
+// build.gradle.kts (parsed as plain key=value pairs) for the Android/Desktop builds.
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1

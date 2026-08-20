@@ -15,3 +15,22 @@ plugins {
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
 }
+
+// `version.xcconfig` at the repo root is the single source of truth for the app's version,
+// shared with iosApp/Configuration/Config.xcconfig via `#include`. Parsed here (plain
+// `KEY = value` lines, xcconfig syntax) so Android/Desktop read the exact same values.
+private val versionProps =
+    file("version.xcconfig").readLines()
+        .mapNotNull { line ->
+            val trimmed = line.substringBefore("//").trim()
+            if (trimmed.isEmpty() || !trimmed.contains("=")) {
+                null
+            } else {
+                val (key, value) = trimmed.split("=", limit = 2)
+                key.trim() to value.trim()
+            }
+        }
+        .toMap()
+
+extra["cptVersionName"] = versionProps.getValue("MARKETING_VERSION")
+extra["cptVersionCode"] = versionProps.getValue("CURRENT_PROJECT_VERSION").toInt()
