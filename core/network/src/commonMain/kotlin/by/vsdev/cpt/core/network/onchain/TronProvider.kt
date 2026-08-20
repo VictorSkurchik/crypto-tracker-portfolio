@@ -5,9 +5,12 @@ import by.vsdev.cpt.core.model.OnChainProvider
 import by.vsdev.cpt.core.model.ProviderError
 import by.vsdev.cpt.core.model.ProviderResult
 import by.vsdev.cpt.core.model.TokenBalance
+import by.vsdev.cpt.core.network.networkExceptionToFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.url
+import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -29,7 +32,10 @@ class TronProvider(
         address: String,
     ): ProviderResult<List<TokenBalance>> =
         try {
-            val response = httpClient.get("$BASE_URL/v1/accounts/$address")
+            val response =
+                httpClient.get(BASE_URL) {
+                    url { appendPathSegments("v1", "accounts", address) }
+                }
             if (!response.status.isSuccess()) {
                 ProviderResult.Failure(ProviderError.Unavailable("TronGrid returned ${response.status}"))
             } else {
@@ -52,7 +58,7 @@ class TronProvider(
                 ProviderResult.Success(balances)
             }
         } catch (e: Exception) {
-            ProviderResult.Failure(ProviderError.Unavailable(e.message ?: "TronGrid request failed"))
+            networkExceptionToFailure(e, "TronGrid request failed")
         }
 
     private data class KnownToken(

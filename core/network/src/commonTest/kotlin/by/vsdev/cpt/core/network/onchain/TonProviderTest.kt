@@ -1,6 +1,7 @@
 package by.vsdev.cpt.core.network.onchain
 
 import by.vsdev.cpt.core.model.ChainId
+import by.vsdev.cpt.core.model.ProviderError
 import by.vsdev.cpt.core.model.ProviderResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -13,6 +14,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class TonProviderTest {
@@ -28,6 +30,13 @@ class TonProviderTest {
                     headers = headersOf(HttpHeaders.ContentType, "application/json"),
                 )
             }
+        return HttpClient(engine) {
+            install(ContentNegotiation) { json() }
+        }
+    }
+
+    private fun clientRespondingWith(status: HttpStatusCode): HttpClient {
+        val engine = MockEngine { respond(content = "", status = status) }
         return HttpClient(engine) {
             install(ContentNegotiation) { json() }
         }
@@ -100,5 +109,27 @@ class TonProviderTest {
             check(result is ProviderResult.Success)
             assertEquals(1, result.value.size)
             assertEquals("TON", result.value.single().assetSymbol)
+        }
+
+    @Test
+    fun `a non-2xx response is reported as a failure rather than a silent zero balance`() =
+        runTest {
+            val provider = TonProvider(clientRespondingWith(HttpStatusCode.InternalServerError))
+
+            val result = provider.fetchBalances(ChainId.TON, "ton-address")
+
+            val failure = assertIs<ProviderResult.Failure>(result)
+            assertIs<ProviderError.Unavailable>(failure.error)
+        }
+
+    @Test
+    fun `a rate-limited response maps to ProviderError RateLimited`() =
+        runTest {
+            val provider = TonProvider(clientRespondingWith(HttpStatusCode.TooManyRequests))
+
+            val result = provider.fetchBalances(ChainId.TON, "ton-address")
+
+            val failure = assertIs<ProviderResult.Failure>(result)
+            assertIs<ProviderError.RateLimited>(failure.error)
         }
 }

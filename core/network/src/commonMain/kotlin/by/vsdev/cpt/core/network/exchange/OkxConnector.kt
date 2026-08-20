@@ -7,6 +7,7 @@ import by.vsdev.cpt.core.model.ProviderError
 import by.vsdev.cpt.core.model.ProviderResult
 import by.vsdev.cpt.core.model.TokenBalance
 import by.vsdev.cpt.core.network.HmacSigner
+import by.vsdev.cpt.core.network.networkExceptionToFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -40,7 +41,7 @@ class OkxConnector(
                 }
             mapResponse(response)
         } catch (e: Exception) {
-            ProviderResult.Failure(ProviderError.Unavailable(e.message ?: "OKX request failed"))
+            networkExceptionToFailure(e, "OKX request failed")
         }
     }
 

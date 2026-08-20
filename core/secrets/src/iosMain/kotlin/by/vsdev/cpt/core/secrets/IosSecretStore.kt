@@ -19,7 +19,10 @@ import platform.Foundation.create
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
+import platform.Security.errSecItemNotFound
 import platform.Security.errSecSuccess
+import platform.Security.kSecAttrAccessible
+import platform.Security.kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 import platform.Security.kSecAttrAccount
 import platform.Security.kSecAttrService
 import platform.Security.kSecClass
@@ -55,6 +58,9 @@ class IosSecretStore : SecretStore {
     private val secMatchLimit = CFBridgingRelease(kSecMatchLimit) as String
     private val secClassGenericPassword = CFBridgingRelease(kSecClassGenericPassword) as String
     private val secMatchLimitOne = CFBridgingRelease(kSecMatchLimitOne) as String
+    private val secAttrAccessible = CFBridgingRelease(kSecAttrAccessible) as String
+    private val secAttrAccessibleWhenUnlockedThisDeviceOnly =
+        CFBridgingRelease(kSecAttrAccessibleWhenUnlockedThisDeviceOnly) as String
 
     override suspend fun store(
         key: String,
@@ -63,7 +69,12 @@ class IosSecretStore : SecretStore {
         remove(key)
         val query = baseQuery(key)
         query.setObject(value.toNSData(), forKey = secValueData.ns())
-        query.asCFDictionary { ref -> SecItemAdd(ref, null) }
+        // Explicit rather than relying on the kSecAttrAccessibleWhenUnlocked default: exchange
+        // secrets should never be included in an iCloud/encrypted-device backup that could be
+        // restored onto a different device, so this pins them to this device only.
+        query.setObject(secAttrAccessibleWhenUnlockedThisDeviceOnly, forKey = secAttrAccessible.ns())
+        val status = query.asCFDictionary { ref -> SecItemAdd(ref, null) }
+        check(status == errSecSuccess) { "Keychain write failed for key \"$key\" with OSStatus $status" }
     }
 
     override suspend fun retrieve(key: String): String? {
@@ -80,7 +91,12 @@ class IosSecretStore : SecretStore {
     }
 
     override suspend fun remove(key: String) {
-        baseQuery(key).asCFDictionary { ref -> SecItemDelete(ref) }
+        val status = baseQuery(key).asCFDictionary { ref -> SecItemDelete(ref) }
+        // errSecItemNotFound just means there was nothing to delete (e.g. the store()-triggered
+        // delete-before-add on first write) -- that's expected, not a failure.
+        check(status == errSecSuccess || status == errSecItemNotFound) {
+            "Keychain delete failed for key \"$key\" with OSStatus $status"
+        }
     }
 
     private fun baseQuery(key: String): NSMutableDictionary {

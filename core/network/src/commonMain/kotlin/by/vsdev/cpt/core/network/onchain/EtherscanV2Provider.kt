@@ -5,6 +5,7 @@ import by.vsdev.cpt.core.model.OnChainProvider
 import by.vsdev.cpt.core.model.ProviderError
 import by.vsdev.cpt.core.model.ProviderResult
 import by.vsdev.cpt.core.model.TokenBalance
+import by.vsdev.cpt.core.network.networkExceptionToFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -66,7 +67,7 @@ class EtherscanV2Provider(
                 }
             ProviderResult.Success(balances)
         } catch (e: Exception) {
-            ProviderResult.Failure(ProviderError.Unavailable(e.message ?: "Etherscan request failed"))
+            networkExceptionToFailure(e, "Etherscan request failed")
         }
     }
 

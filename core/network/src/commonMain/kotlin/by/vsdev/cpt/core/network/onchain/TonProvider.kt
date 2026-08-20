@@ -5,10 +5,13 @@ import by.vsdev.cpt.core.model.OnChainProvider
 import by.vsdev.cpt.core.model.ProviderError
 import by.vsdev.cpt.core.model.ProviderResult
 import by.vsdev.cpt.core.model.TokenBalance
+import by.vsdev.cpt.core.network.networkExceptionToFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -32,8 +35,10 @@ class TonProvider(
     ): ProviderResult<List<TokenBalance>> =
         try {
             ProviderResult.Success(fetchNativeBalance(address) + fetchJettonBalances(address))
+        } catch (e: TonRequestFailedException) {
+            ProviderResult.Failure(e.error)
         } catch (e: Exception) {
-            ProviderResult.Failure(ProviderError.Unavailable(e.message ?: "TON request failed"))
+            networkExceptionToFailure(e, "TON request failed")
         }
 
     private suspend fun fetchNativeBalance(address: String): List<TokenBalance> {
@@ -41,7 +46,7 @@ class TonProvider(
             httpClient.get("$BASE_URL/accountStates") {
                 parameter("address", address)
             }
-        if (!response.status.isSuccess()) return emptyList()
+        response.requireSuccessOrThrow("accountStates")
         val body = response.body<TonAccountStatesResponse>()
         val nanotons =
             body.accounts
@@ -58,7 +63,7 @@ class TonProvider(
                 parameter("owner_address", address)
                 parameter("exclude_zero_balance", true)
             }
-        if (!walletsResponse.status.isSuccess()) return emptyList()
+        walletsResponse.requireSuccessOrThrow("jetton/wallets")
         val wallets = walletsResponse.body<TonJettonWalletsResponse>().jettonWallets
         if (wallets.isEmpty()) return emptyList()
 
@@ -67,7 +72,7 @@ class TonProvider(
             httpClient.get("$BASE_URL/jetton/masters") {
                 masterAddresses.forEach { parameter("address", it) }
             }
-        if (!mastersResponse.status.isSuccess()) return emptyList()
+        mastersResponse.requireSuccessOrThrow("jetton/masters")
         val metaByAddress =
             mastersResponse
                 .body<TonJettonMastersResponse>()
@@ -82,6 +87,28 @@ class TonProvider(
             if (quantity <= 0.0) null else TokenBalance(assetSymbol = symbol, quantity = quantity, chain = ChainId.TON)
         }
     }
+
+    /**
+     * Throws [TonRequestFailedException] on a non-2xx response instead of the caller silently
+     * treating it as "this wallet holds nothing" (as `return emptyList()` used to do here in three
+     * places) -- unlike every other provider in this module, which distinguishes rate-limiting/auth
+     * failures from a generic outage. A real API error must never be reported as a zero balance.
+     */
+    private fun HttpResponse.requireSuccessOrThrow(context: String) {
+        if (status.isSuccess()) return
+        val error =
+            when (status) {
+                HttpStatusCode.TooManyRequests -> ProviderError.RateLimited("TON Center rate limit hit ($context)")
+                HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden ->
+                    ProviderError.AuthenticationFailed("TON Center rejected the request ($context)")
+                else -> ProviderError.Unavailable("TON Center returned $status ($context)")
+            }
+        throw TonRequestFailedException(error)
+    }
+
+    private class TonRequestFailedException(
+        val error: ProviderError,
+    ) : Exception(error.message)
 
     private companion object {
         const val BASE_URL = "https://toncenter.com/api/v3"

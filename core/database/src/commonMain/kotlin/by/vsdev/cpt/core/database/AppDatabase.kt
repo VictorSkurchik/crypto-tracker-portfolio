@@ -25,7 +25,7 @@ const val DATABASE_FILE_NAME = "cpt.db"
         RefreshStateEntity::class,
     ],
     version = 1,
-    exportSchema = false,
+    exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
