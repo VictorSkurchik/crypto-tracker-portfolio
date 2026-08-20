@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy (pre-Android-12) Auto Backup rules — this app's minSdk is 24, and dataExtractionRules.xml
+  only takes effect on API 31+, so devices on API 24-30 fall back to this file instead. Same
+  exclusions as data_extraction_rules.xml; see the comment there for the full rationale.
+-->
+<full-backup-content>
+    <exclude domain="database" path="cpt.db" />
+    <exclude domain="database" path="cpt.db-wal" />
+    <exclude domain="database" path="cpt.db-shm" />
+    <exclude domain="database" path="cpt.db-journal" />
+    <exclude domain="sharedpref" path="cpt_secrets.xml" />
+</full-backup-content>

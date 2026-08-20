@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Cpt" parent="android:Theme.Material.NoActionBar">
+        <!-- Mirrors CptTheme's dark background token, Color(0xFF141312). -->
+        <item name="android:windowBackground">#FF141312</item>
+    </style>
+</resources>

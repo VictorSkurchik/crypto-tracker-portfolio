@@ -1,13 +1,26 @@
+import java.util.Properties
+
 plugins {
     id("cpt.android.application")
 }
+
+// Release signing is optional and opt-in: if no `keystore.properties` file is present
+// (e.g. on a fresh checkout or in CI without secrets configured), the release build type
+// simply falls back to being unsigned, same as before this was introduced.
+val keystorePropertiesFile = file("keystore.properties")
+val keystoreProperties =
+    Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+            keystorePropertiesFile.inputStream().use { load(it) }
+        }
+    }
 
 android {
     namespace = "by.vsdev.cpt"
 
     defaultConfig {
         applicationId = "by.vsdev.cpt"
-        versionCode = 1
+        versionCode = rootProject.extra["cptVersionCode"] as Int
     }
 
     packaging {
@@ -16,13 +29,28 @@ android {
         }
     }
 
+    if (keystorePropertiesFile.exists()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
