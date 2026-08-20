@@ -7,7 +7,6 @@ data class AccountBreakdown(
     val displayName: String,
     val valueUsd: Double,
     val balances: List<PricedBalance>,
-    val error: String? = null,
 )
 
 data class AssetBreakdown(

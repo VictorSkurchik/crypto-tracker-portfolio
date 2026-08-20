@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -27,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun CustomAssetsScreen(viewModel: CustomAssetsViewModel = koinViewModel()) {
     val assets by viewModel.assets.collectAsStateWithLifecycle()
+    val validationError by viewModel.validationError.collectAsStateWithLifecycle()
     var displayName by remember { mutableStateOf("") }
     var symbol by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
@@ -45,13 +47,19 @@ fun CustomAssetsScreen(viewModel: CustomAssetsViewModel = koinViewModel()) {
             )
             OutlinedTextField(
                 value = symbol,
-                onValueChange = { symbol = it },
+                onValueChange = {
+                    symbol = it
+                    viewModel.clearValidationError()
+                },
                 label = { Text("Symbol (e.g. BTC)") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
             OutlinedTextField(
                 value = quantity,
-                onValueChange = { quantity = it },
+                onValueChange = {
+                    quantity = it
+                    viewModel.clearValidationError()
+                },
                 label = { Text("Quantity") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
@@ -62,16 +70,29 @@ fun CustomAssetsScreen(viewModel: CustomAssetsViewModel = koinViewModel()) {
             if (useLivePricing) {
                 OutlinedTextField(
                     value = cmcSymbol,
-                    onValueChange = { cmcSymbol = it },
+                    onValueChange = {
+                        cmcSymbol = it
+                        viewModel.clearValidationError()
+                    },
                     label = { Text("CoinMarketCap symbol") },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
             } else {
                 OutlinedTextField(
                     value = fixedPrice,
-                    onValueChange = { fixedPrice = it },
+                    onValueChange = {
+                        fixedPrice = it
+                        viewModel.clearValidationError()
+                    },
                     label = { Text("Fixed price (USD per unit)") },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+            }
+            if (validationError != null) {
+                Text(
+                    validationError.orEmpty(),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
             Button(
@@ -82,11 +103,13 @@ fun CustomAssetsScreen(viewModel: CustomAssetsViewModel = koinViewModel()) {
                     } else {
                         viewModel.addFixedPriceAsset(displayName, symbol, qty, fixedPrice.toDoubleOrNull() ?: 0.0)
                     }
-                    displayName = ""
-                    symbol = ""
-                    quantity = ""
-                    fixedPrice = ""
-                    cmcSymbol = ""
+                    if (validationError == null) {
+                        displayName = ""
+                        symbol = ""
+                        quantity = ""
+                        fixedPrice = ""
+                        cmcSymbol = ""
+                    }
                 },
                 modifier = Modifier.padding(top = 8.dp),
             ) { Text("Add asset") }

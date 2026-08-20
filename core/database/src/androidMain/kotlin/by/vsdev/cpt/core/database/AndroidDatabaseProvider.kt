@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 class AndroidDatabaseProvider(
     private val context: Context,
 ) : DatabaseProvider {
+    @Suppress("InjectDispatcher")
     private val instance: AppDatabase by lazy {
         Room
             .databaseBuilder<AppDatabase>(

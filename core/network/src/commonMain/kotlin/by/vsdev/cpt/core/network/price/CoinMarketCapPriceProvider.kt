@@ -10,6 +10,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class CoinMarketCapPriceProvider(
@@ -69,10 +70,8 @@ private data class CmcQuoteEntry(
 
 @Serializable
 private data class CmcQuote(
-    val USD: CmcUsdQuote? = null,
-) {
-    val usd get() = USD
-}
+    @SerialName("USD") val usd: CmcUsdQuote? = null,
+)
 
 @Serializable
 private data class CmcUsdQuote(

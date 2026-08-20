@@ -57,7 +57,7 @@ class EtherscanV2Provider(
                 return ProviderResult.Failure(ProviderError.UnexpectedResponse(body.message ?: "Etherscan error"))
             }
             val weiBalance = body.result.toDoubleOrNull() ?: 0.0
-            val nativeBalance = weiBalance / 1e18
+            val nativeBalance = weiBalance / WEI_PER_ETH
             val balances =
                 if (nativeBalance > 0.0) {
                     listOf(TokenBalance(assetSymbol = "ETH", quantity = nativeBalance, chain = chainId))
@@ -72,6 +72,7 @@ class EtherscanV2Provider(
 
     private companion object {
         const val BASE_URL = "https://api.etherscan.io/v2/api"
+        const val WEI_PER_ETH = 1e18
         val CHAIN_IDS =
             mapOf(
                 ChainId.ETHEREUM to 1,

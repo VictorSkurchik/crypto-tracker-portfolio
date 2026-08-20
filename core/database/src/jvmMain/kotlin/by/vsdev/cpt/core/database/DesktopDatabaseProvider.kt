@@ -8,6 +8,7 @@ import java.io.File
 class DesktopDatabaseProvider(
     appDataDir: File = File(System.getProperty("user.home"), ".crypto-portfolio-tracker"),
 ) : DatabaseProvider {
+    @Suppress("InjectDispatcher")
     private val instance: AppDatabase by lazy {
         appDataDir.mkdirs()
         Room

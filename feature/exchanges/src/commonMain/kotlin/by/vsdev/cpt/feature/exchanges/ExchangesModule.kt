@@ -5,5 +5,5 @@ import org.koin.dsl.module
 
 val exchangesFeatureModule =
     module {
-        viewModel { ExchangesViewModel(get()) }
+        viewModel { ExchangesViewModel(get(), get()) }
     }
